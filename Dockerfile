@@ -1,31 +1,30 @@
 # Stage 1: Build
 FROM node:20-alpine AS build
 # Directorio donde se mantendran los archivos de la app
-WORKDIR /usr/src/app
+WORKDIR /app
 
-COPY . /usr/src/app
-
-RUN npm install -g @angular/cli@18.0.0
+COPY package*.json ./
 
 RUN npm install
 
-CMD ["ng", "serve", "--host", "0.0.0.0"]
 
 # Copiar todos los archivos
-#COPY . .
+COPY . .
 # Construir la aplicacion lista para produccion, puede no incluir el # flag --prod
-#RUN npm run build
+RUN npm run build
 
 # Stage 2
-#FROM nginx:1.17.1-alpine
+FROM nginx:alpine
 
 # Copiar desde la "Etapa" build el contenido de la carpeta build/
 # dentro del directorio indicado en nginx
 
-#COPY --from=build /usr/src/app/dist/app-material /usr/share/nginx/html
+COPY --from=build /app/dist/app-material/browser /usr/share/nginx/html
 
 # Copiar desde la "Etapa" build el contenido de la carpeta la 
 # configuracion de nginx dentro del directorio indicado en nginx
 #COPY --from=build /usr/src/app/nginx.conf /etc/nginx/conf.d/default.conf
 
-#EXPOSE 80
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
