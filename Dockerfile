@@ -25,6 +25,6 @@ COPY --from=build /app/dist/app-material/browser /usr/share/nginx/html
 # configuracion de nginx dentro del directorio indicado en nginx
 #COPY --from=build /usr/src/app/nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
