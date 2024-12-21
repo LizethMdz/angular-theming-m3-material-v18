@@ -1,37 +1,54 @@
-name: Deploy Angular App to Cloud Run
+name: Deploy to Google Cloud Run
 
 on:
   push:
     branches:
-      - main  # Despliega cuando se haga un push a la rama principal
+      - main  # Puedes cambiar esto al nombre de la rama que quieres que dispare el deploy
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Check out repository
+        uses: actions/checkout@v3
 
-    - name: Set up Google Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
-      with:
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
-        credentials: ${{ secrets.GCP_CREDENTIALS }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'  # Ajusta la versión de Node.js según tu proyecto
 
-    - name: Build Docker image
-      run: |
-        docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/angular-app:v1 .
+      - name: Install dependencies
+        run: |
+          npm install
 
-    - name: Push Docker image to Google Container Registry
-      run: |
-        gcloud auth configure-docker
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/angular-app:v1
+      - name: Build Angular project
+        run: |
+          npm run build --prod  # Construye la aplicación Angular en modo producción
 
-    - name: Deploy to Cloud Run
-      run: |
-        gcloud run deploy angular-app \
-          --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/angular-app:v1 \
-          --platform managed \
-          --region us-central1 \
-          --allow-unauthenticated
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}  # Asegúrate de tener las credenciales de GCP configuradas
+
+      - name: Configure Docker to use Google Cloud Registry
+        run: |
+          gcloud auth configure-docker
+
+      - name: Build Docker image from Dockerfile
+        run: |
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/angular-app:$GITHUB_SHA .  # Construye la imagen usando tu Dockerfile
+
+      - name: Push Docker image to Google Container Registry
+        run: |
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/angular-app:$GITHUB_SHA
+
+      - name: Deploy to Google Cloud Run
+        run: |
+          gcloud run deploy angular-app \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/angular-app:$GITHUB_SHA \
+            --platform managed \
+            --region us-east1  # Cambia la región si es necesario
+            --allow-unauthenticated
