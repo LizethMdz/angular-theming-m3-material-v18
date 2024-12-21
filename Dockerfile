@@ -42,7 +42,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm run ng build -- --prod
+RUN npm run ng build
 
 # STAGE 2: Deploy
 
