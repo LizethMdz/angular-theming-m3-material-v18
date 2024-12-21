@@ -30,30 +30,12 @@
 # CMD ["nginx", "-g", "daemon off;"]
 
 
-# STAGE 1: Build
-
-FROM node:20-alpine as builder
-
-COPY package.json package-lock.json ./
-
-RUN npm ci && mkdir /app && mv ./node_modules ./app
-
-WORKDIR /app
-
-COPY . .
-
-RUN npm run ng build
-
-# STAGE 2: Deploy
-
-FROM nginx:alpine
-
-COPY nginx/default.conf.template /etc/nginx/conf.d/
-
-RUN rm -rf /usr/share/nginx/html/*
-
-COPY --from=builder /app/dist/app-material/browser /usr/share/nginx/html
-
-COPY run.sh /
-
-CMD ["/run.sh"]
+FROM node:20-alpine
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install -g @angular/cli@18.0.0
+RUN npm install
+COPY . ./
+RUN npm run build
+EXPOSE 8080
+CMD [ "node", "server.js" ]
