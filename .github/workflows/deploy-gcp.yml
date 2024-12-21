@@ -51,4 +51,3 @@ jobs:
             --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/angular-app:$GITHUB_SHA \
             --platform managed \
             --region us-east1  # Cambia la región si es necesario
-            --allow-unauthenticated
