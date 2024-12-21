@@ -46,7 +46,7 @@ RUN npm run ng build -- --prod
 
 # STAGE 2: Deploy
 
-FROM nginx:1.17-alpine
+FROM nginx:alpine
 
 COPY nginx/default.conf.template /etc/nginx/conf.d/
 
